@@ -46,6 +46,8 @@ services:
       DB_PASSWORD: localdev
       ADMIN_USERNAME: admin
       ADMIN_PASSWORD: admin123
+      # Everything the app calls "today" follows this, not the container's UTC clock
+      APP_TIMEZONE: ${APP_TIMEZONE:-Asia/Kolkata}
       # Demo customers and services on an empty database. Set to false to start blank.
       SEED_DEMO: 'true'
       # Unused while nginx proxies /api — kept for running the Vite dev server against

@@ -47,6 +47,10 @@ services:
       - key: CORS_ORIGINS
         sync: false
 
+      # The timezone the business works in — everything called "today" follows it.
+      - key: APP_TIMEZONE
+        value: Asia/Kolkata
+
       # Demo customers and services on an empty database — useful while testing,
       # set to false before the shop starts entering real records.
       - key: SEED_DEMO
