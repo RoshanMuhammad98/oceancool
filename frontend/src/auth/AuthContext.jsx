@@ -28,10 +28,11 @@ export function AuthProvider({ children }) {
   const sessionRef = useRef(session);
   sessionRef.current = session;
 
-  // the API client reads the token straight from here, so nothing has to pass it down
-  useEffect(() => {
-    setTokenReader(() => sessionRef.current?.token || null);
-  }, []);
+  // Installed during render, deliberately not in an effect. React runs child effects
+  // before parent ones, so a screen's first fetch on page load would otherwise go out
+  // before the reader existed — no Authorization header, 401, and the app would sign
+  // itself out on every refresh. Reassigning the same closure each render is harmless.
+  setTokenReader(() => sessionRef.current?.token || null);
 
   const signOut = useCallback((options = {}) => {
     const token = sessionRef.current?.token;

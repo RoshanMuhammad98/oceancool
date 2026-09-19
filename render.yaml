@@ -21,9 +21,8 @@ services:
     rootDir: backend
     dockerfilePath: ./Dockerfile
 
-    # Proves the app is up *and* that it can reach the database, which is what actually
-    # goes wrong on a first deploy. Every endpoint is currently open, so no token needed.
-    healthCheckPath: /api/dashboard
+    # Must be an endpoint that needs no login token — everything else now does.
+    healthCheckPath: /api/health
 
     envVars:
       # ---- database, wired from the managed instance declared at the bottom ----
