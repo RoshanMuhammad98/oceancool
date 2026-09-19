@@ -340,129 +340,90 @@ detail and reports all rendered live data with **zero console errors**. Checked 
 - `ddl-auto=update` is fine for testing. Before this holds records anyone depends on,
   move to Flyway or Liquibase so schema changes are reviewable.
 
-## 10. Free-tier test deployment
+## 10. A permanent link — deploying it
 
-Everything below is free and needs no credit card. The split is deliberate:
+A tunnel is never a permanent address: it dies with your machine, your network, or
+Cloudflare reclaiming it. For a link that keeps working, the app has to run somewhere
+other than your computer. All of this is free and needs no card.
 
 | Piece | Host | Why |
 |---|---|---|
-| Database | **Neon** | Free Postgres that does not expire. Render's free Postgres is deleted after 30 days. |
-| API | **Render** | Free Docker web service. Java is not one of Render's auto-detected runtimes, hence `backend/Dockerfile`. |
-| Frontend | **Vercel** | SPA routing, CDN, and HTTPS — which the PWA install prompt requires. |
+| Database + API | **Render** | One blueprint creates both. Java is not one of Render's auto-detected runtimes, hence `backend/Dockerfile`. |
+| Frontend | **Vercel** | SPA routing, CDN and HTTPS — which the PWA install prompt requires. |
 
-You need HTTPS for the real test: a phone cannot install a PWA from `localhost`, so
-"Add to Home Screen" only becomes testable once the frontend is deployed.
+### Step 1 — push is already done
 
-### Step 0 — push to GitHub
+Render and Vercel deploy from the GitHub repo, which is already there.
 
-Render and Vercel both deploy from a repository.
-
-```bash
-cd C:/Ai/oceancool
-git init
-git add .
-git commit -m "OceanCool: service and payment records"
-gh repo create oceancool --private --source=. --push
-```
-
-`.gitignore` already keeps `target/`, `node_modules/`, `dist/` and every `.env` out.
-No password is committed — all of them arrive as environment variables.
-
-### Step 1 — database on Neon
-
-1. Sign up at [neon.com](https://neon.com), create a project, pick the region closest
-   to you (`ap-southeast-1` / Singapore).
-2. On the dashboard open **Connection Details** and switch the snippet type to **Java**.
-   You want three values:
-
-   ```
-   DB_URL       jdbc:postgresql://ep-xxxx-xxxx.ap-southeast-1.aws.neon.tech/neondb?sslmode=require
-   DB_USERNAME  neondb_owner
-   DB_PASSWORD  <shown once — copy it now>
-   ```
-
-   **Keep `?sslmode=require`.** Neon refuses plaintext connections, and without it the
-   app fails at startup with a driver SSL error.
-
-No tables to create: JPA creates them on the first boot. The database Neon gives you
-(`neondb`) is the one to use — there is no need for a separate `oceancool` database.
-
-### Step 2 — API on Render
+### Step 2 — Render: database and API in one go
 
 1. Sign up at [render.com](https://render.com) and connect the GitHub repo.
-2. **New → Blueprint**, select the repo. Render reads `render.yaml` and proposes the
-   `oceancool-api` service — plan free, region Singapore, Docker, root `backend/`.
-3. It will prompt for the variables marked `sync: false`:
+2. **New → Blueprint**, pick the repo. Render reads `render.yaml` and proposes
+   *both* the `oceancool-api` service and a free `oceancool-postgres` database,
+   already wired to each other — there is no connection string to copy anywhere.
+3. It asks for the two values that are deliberately not in git:
 
    | Variable | Value |
    |---|---|
-   | `DB_URL` `DB_USERNAME` `DB_PASSWORD` | from Neon, step 1 |
-   | `ADMIN_PASSWORD` | the staff password you want — **not** `admin123` |
-   | `CORS_ORIGINS` | leave as `http://localhost:5173` for now; step 3 replaces it |
+   | `ADMIN_PASSWORD` | the staff password you want — **not** `admin123`, the repo is public |
+   | `CORS_ORIGINS` | put `http://localhost:5173` for now; step 3 replaces it |
 
-4. Deploy. The first build takes 3–5 minutes (Maven downloads inside the container).
-   In the logs, look for:
+4. Deploy. The first build takes 3–5 minutes (Maven runs inside the container). In the
+   logs, look for:
 
    ```
-   Created the first staff login 'admin'. Change the password in application.properties.
+   Business timezone is Asia/Kolkata — today is ...
+   Created the first staff login 'admin'. ...
    Seeded 4 demo customers and 8 demo service records.
    Started OceanCoolApplication in ...
    ```
 
-   That line about seeding is the proof that schema generation and the database
-   connection both worked.
+5. Check it: `curl https://oceancool-api.onrender.com/api/dashboard`
 
-5. Check it from your machine — replace the host with the one Render gives you:
+> **Render's free Postgres is deleted 30 days after it is created.** Fine for testing.
+> To keep the data beyond that, create a free database at [neon.com](https://neon.com)
+> (permanent, no card) and set one variable on the Render service:
+> `DB_URL=jdbc:postgresql://<host>.neon.tech/neondb?sslmode=require` plus its
+> `DB_USERNAME` / `DB_PASSWORD`. That single URL overrides the composed one; nothing
+> else changes.
 
-   ```bash
-   curl https://oceancool-api.onrender.com/api/dashboard
-   ```
+### Step 3 — Vercel: the frontend
 
-### Step 3 — frontend on Vercel
-
-1. Sign up at [vercel.com](https://vercel.com), **Add New → Project**, pick the repo.
-2. Set **Root Directory** to `frontend`. `vercel.json` supplies the rest (Vite preset,
-   the SPA fallback, and cache headers that stop a stale service worker from freezing
-   the app).
+1. At [vercel.com](https://vercel.com), **Add New → Project**, pick the repo.
+2. Set **Root Directory** to `frontend`. `vercel.json` supplies the rest.
 3. Add one environment variable:
 
    ```
    VITE_API_BASE_URL = https://oceancool-api.onrender.com
    ```
 
-   This is read at **build** time, so changing it later needs a redeploy, not just a
-   restart.
-4. Deploy. You get `https://<something>.vercel.app`.
+   It is read at **build** time, so changing it later needs a redeploy, not a restart.
+4. Deploy. You get `https://<something>.vercel.app` — that is the permanent link.
 5. **Go back to Render** and set `CORS_ORIGINS` to that exact Vercel URL, then redeploy
-   the API. Until you do, the browser blocks every request and the app shows
-   "Cannot reach the server" while the API itself is perfectly healthy — this is the
-   single most common thing to get stuck on.
+   the API. Until you do, the browser blocks every request while the API itself is
+   perfectly healthy. This is the single most common thing to get stuck on.
 
-### Step 4 — test it on the phone
+### Step 4 — install it on a phone
 
-Open the Vercel URL on the phone, sign in, then:
+Open the Vercel URL on the phone:
 
-- **Android / Chrome** — the dashboard shows the *Install OceanCool* bar. Tap **Install**.
-- **iPhone / Safari** — **Share → Add to Home Screen**.
+- **Android / Chrome** — the dashboard shows an *Install OceanCool* bar; tap **Install**.
+  Or use Chrome's ⋮ menu → **Install app**.
+- **iPhone / Safari** — **Share** → **Add to Home Screen**. It must be Safari; other iOS
+  browsers only make a bookmark.
 
-It should then open full screen with no browser bars, with the OceanCool icon on the
-home screen. Turn on airplane mode and reopen it: the shell still loads (the service
-worker cached it) and the screens report that the server is unreachable — records
-themselves are never served from cache, by design.
+Then it opens full screen with no browser bars, from an icon on the home screen.
 
-### Things that will surprise you
+### What will surprise you
 
 - **The first request after 15 idle minutes takes about a minute.** Render's free web
-  service spins down when idle and cold-starts on the next request. Neon's free compute
-  also suspends, adding a few seconds. So the login screen may hang on the very first
-  attempt of the day — that is the free tier, not a bug. A paid Render instance (or any
-  always-on host) removes it.
+  service spins down when idle and cold-starts on the next request, so the first login
+  of the day may hang. That is the free tier, not a bug — a paid instance removes it.
 - Render's free plan allows 750 instance-hours per workspace per month, which one
-  always-idle service comfortably fits inside.
-- Set `SEED_DEMO=false` on Render before the shop starts entering real records, or the
-  demo customers reappear on any future empty database.
-- `ddl-auto=update` is fine for this test. Before it holds records anyone depends on,
-  switch to a migration tool (Flyway or Liquibase) so schema changes are reviewable.
+  mostly-idle service fits inside comfortably.
+- Set `SEED_DEMO=false` on Render before the shop enters real records.
+- `ddl-auto=update` is fine for testing. Before this holds records anyone depends on,
+  move to Flyway or Liquibase so schema changes are reviewable.
 
 ## 11. Testing on a phone without signing up for anything
 

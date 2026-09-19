@@ -4,9 +4,10 @@
 # creates the service; the values marked `sync: false` are NOT in git and Render will
 # prompt for each one on the first deploy.
 #
-# The database is deliberately NOT declared here. Render's free Postgres expires after
-# 30 days and is then deleted, so the database lives on Neon instead (free, permanent,
-# no card) and its connection details arrive through the variables below.
+# The blueprint creates the database as well, so deploying is one signup and one click.
+# Note Render's free Postgres is DELETED 30 days after creation. When that matters,
+# create a free Neon database (permanent) and set DB_URL on the service to its JDBC
+# string — that single variable overrides the composed one below, nothing else changes.
 #
 # The frontend is not here either — it goes to Vercel, which handles SPA routing and a
 # global CDN better than a container does. See README section 10.
@@ -25,15 +26,27 @@ services:
     healthCheckPath: /api/dashboard
 
     envVars:
-      # ---- Neon connection (from the Neon dashboard) ----
-      # Must be the JDBC form and must keep sslmode=require:
-      #   jdbc:postgresql://<host>.neon.tech/neondb?sslmode=require
-      - key: DB_URL
-        sync: false
+      # ---- database, wired from the managed instance declared at the bottom ----
+      - key: DB_HOST
+        fromDatabase:
+          name: oceancool-postgres
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: oceancool-postgres
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: oceancool-postgres
+          property: database
       - key: DB_USERNAME
-        sync: false
+        fromDatabase:
+          name: oceancool-postgres
+          property: user
       - key: DB_PASSWORD
-        sync: false
+        fromDatabase:
+          name: oceancool-postgres
+          property: password
 
       # ---- the staff login created on first boot ----
       - key: ADMIN_USERNAME
@@ -61,3 +74,10 @@ services:
       # covers it; the small pool respects the free tier's connection limit.
       - key: DB_POOL_SIZE
         value: "5"
+
+databases:
+  - name: oceancool-postgres
+    plan: free
+    region: singapore
+    databaseName: oceancool
+    user: oceancool
