@@ -25,6 +25,9 @@ Single company, single database. No multi-tenant scoping anywhere.
 
 ## 2. Backend
 
+> **In a hurry?** Skip to *Running the whole thing with Docker* below: one
+> command, no database setup, no Java or Node needed on the host.
+
 ### Create the database
 
 PostgreSQL 17 is already installed and running here (service `postgresql-x64-17`, port
@@ -65,24 +68,32 @@ Lombok generates the entity getters and setters. Its plugin is bundled with Inte
 Execution, Deployment → Compiler → Annotation Processors → Enable annotation
 processing**.
 
-### Running it with Docker instead
+### Running the whole thing with Docker
 
-If the local `postgres` password is not to hand, `docker-compose.yml` brings up Postgres
-and the API together with no credentials to chase:
+The fastest way to see it working, and the one to use if the machine's `postgres`
+password is not to hand. Nothing to install but Docker — no Java, no Node, no database
+setup:
 
 ```bash
 cd C:/Ai/oceancool
-docker compose up --build          # http://localhost:8080
-docker compose down                # stop, keep the data
-docker compose down -v             # stop and wipe the data
+docker compose up --build
 ```
 
-If port 8080 is taken (another Spring Boot app, say), override the host port and tell
-the frontend where to look:
+Then open **http://localhost:3000** and sign in with **admin / admin123**.
+
+That brings up three containers: Postgres, the API, and nginx serving the built React
+app. nginx also forwards `/api` to the backend, so the browser only ever talks to one
+origin — which means no CORS configuration to get wrong, and the API needs no host port
+of its own:
 
 ```bash
-API_PORT=18080 docker compose up --build
-cd frontend && VITE_DEV_API_TARGET=http://localhost:18080 npm run dev
+curl http://localhost:3000/api/dashboard     # the API, same origin
+```
+
+```bash
+docker compose down        # stop, keep the data
+docker compose down -v     # stop and wipe the data, so the demo records come back
+WEB_PORT=3100 docker compose up --build      # if 3000 is taken
 ```
 
 ### Running it from a terminal
@@ -304,15 +315,22 @@ same container: signed in through the login form, then dashboard, service list, 
 detail and reports all rendered live data with **zero console errors**. Checked at 390px,
 820px and 1280px in both light and dark.
 
-### Two things found and fixed during that run
+### Three things found and fixed during that run
 
 - **CORS on loopback.** A browser treats `http://localhost:4173` and
   `http://127.0.0.1:4173` as different origins, so the app failed every request from one
   of them while the API was perfectly healthy. The dev default is now the origin
   patterns `http://localhost:[*]` and `http://127.0.0.1:[*]`, which also survive Vite
   picking a different port. **Production still has to set `CORS_ORIGINS` explicitly.**
-- **Port 8080 collision.** The compose file takes `${API_PORT:-8080}` so another Spring
-  Boot app on 8080 does not block it.
+- **Port 8080 collision.** The API no longer publishes a host port at all — nginx
+  reaches it inside the compose network — so another Spring Boot app on 8080 cannot
+  block it.
+- **"Collected" meant two different things.** The dashboard counted cash received in the
+  period whatever job it was for, while the reports counted money received against jobs
+  *billed* in the period. With a job billed in August and paid in September, the
+  dashboard read "Billed this month 20,900 / 42,000 collected", which looks like a bug.
+  Both now use the reports' definition, so collected can never exceed billed and the
+  dashboard's month figures match the reports' month bucket exactly.
 
 ### Still unverified
 

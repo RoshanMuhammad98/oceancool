@@ -118,12 +118,12 @@ export default function Dashboard() {
                   <span className="sub">{data.todayServices === 1 ? 'job' : 'jobs'} logged</span>
                 </div>
                 <div className="tile">
-                  <span className="k">Today&rsquo;s revenue</span>
+                  <span className="k">Billed today</span>
                   <span className="v">{money(data.todayRevenue)}</span>
-                  <span className="sub">{money(data.todayCollected)} in hand</span>
+                  <span className="sub">{money(data.todayCollected)} collected</span>
                 </div>
                 <div className="tile tile--good">
-                  <span className="k">This month</span>
+                  <span className="k">Billed this month</span>
                   <span className="v">{money(data.monthRevenue)}</span>
                   <span className="sub">{money(data.monthCollected)} collected</span>
                 </div>

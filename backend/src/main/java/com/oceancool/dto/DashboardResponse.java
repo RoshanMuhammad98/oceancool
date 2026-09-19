@@ -7,7 +7,7 @@ public record DashboardResponse(
         long todayServices,
         /** Billed today. */
         BigDecimal todayRevenue,
-        /** Cash actually received today, whenever the job was done. */
+        /** Of what was billed today, how much has been received. Never exceeds it. */
         BigDecimal todayCollected,
         BigDecimal monthRevenue,
         BigDecimal monthCollected,

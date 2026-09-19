@@ -27,7 +27,12 @@ public interface ServiceRecordRepository
     @Query("select coalesce(sum(s.amount), 0) from ServiceRecord s where s.serviceDate between :from and :to")
     BigDecimal sumBilledBetween(@Param("from") LocalDate from, @Param("to") LocalDate to);
 
-    @Query("select coalesce(sum(s.paidAmount), 0) from ServiceRecord s where s.paymentDate between :from and :to")
+    /**
+     * Money received against jobs *dated* in the range — the same definition
+     * {@code ReportService} uses, so "collected" means one thing across the whole app
+     * and can never exceed what was billed for the same period.
+     */
+    @Query("select coalesce(sum(s.paidAmount), 0) from ServiceRecord s where s.serviceDate between :from and :to")
     BigDecimal sumCollectedBetween(@Param("from") LocalDate from, @Param("to") LocalDate to);
 
     @Query("select coalesce(sum(s.amount - s.paidAmount), 0) from ServiceRecord s")

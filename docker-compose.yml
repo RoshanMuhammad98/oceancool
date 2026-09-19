@@ -1,14 +1,20 @@
-# Local test environment: Postgres + the API, one command, no password hunting and no
-# cloud account. Useful when the machine's own PostgreSQL credentials are not to hand.
+# The whole app — database, API and web — with one command. Nothing to install on the
+# host but Docker: no Java, no Node, no PostgreSQL password to track down.
 #
-#   docker compose up --build        # http://localhost:8080
-#   docker compose down             # stop, keep the data
-#   docker compose down -v          # stop and wipe the data
+#   docker compose up --build       ->  http://localhost:3000
+#   docker compose down                 stop, keep the data
+#   docker compose down -v              stop and wipe the data
 #
-# Then run the frontend as usual — `npm run dev` proxies /api here.
+# Sign in with admin / admin123.
 #
-# These credentials are for a throwaway local container. Real deployments get theirs
-# from the host's environment variables; see render.yaml and README section 10.
+# The API is deliberately not published to the host: nginx forwards /api to it inside
+# the compose network, so the browser only ever talks to one origin and CORS never
+# enters the picture. Poke the API directly through the same port, e.g.
+#   curl http://localhost:3000/api/dashboard
+# and if you really want it on its own host port, add a `ports:` entry under `api`.
+#
+# These credentials are for throwaway local containers. Real deployments take theirs
+# from the host's environment; see render.yaml and README section 10.
 
 services:
   db:
@@ -40,15 +46,20 @@ services:
       DB_PASSWORD: localdev
       ADMIN_USERNAME: admin
       ADMIN_PASSWORD: admin123
+      # Demo customers and services on an empty database. Set to false to start blank.
       SEED_DEMO: 'true'
-      # port wildcard so dev (5173) and preview (4173) both work, on either
-      # spelling of loopback
+      # Unused while nginx proxies /api — kept for running the Vite dev server against
+      # this API instead (see README section 3).
       CORS_ORIGINS: 'http://localhost:[*],http://127.0.0.1:[*]'
+
+  web:
+    build: ./frontend
+    container_name: oceancool-web
+    depends_on:
+      - api
     ports:
-      # Another Spring Boot app on 8080 is common; override without editing this file:
-      #   API_PORT=8081 docker compose up --build
-      # If you change it, point the frontend at it too with VITE_DEV_API_TARGET.
-      - '${API_PORT:-8080}:8080'
+      # Change the host side if 3000 is taken:  WEB_PORT=3100 docker compose up
+      - '${WEB_PORT:-3000}:80'
 
 volumes:
   oceancool-db:
