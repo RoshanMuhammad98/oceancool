@@ -445,3 +445,38 @@ themselves are never served from cache, by design.
   demo customers reappear on any future empty database.
 - `ddl-auto=update` is fine for this test. Before it holds records anyone depends on,
   switch to a migration tool (Flyway or Liquibase) so schema changes are reviewable.
+
+## 11. Testing on a phone without signing up for anything
+
+A PWA will not install over `http://localhost`, but you do not need Render, Neon or
+Vercel to get an HTTPS URL. `cloudflared` (already on this machine) hands out a free
+throwaway HTTPS address with no account:
+
+```bash
+# 1. backend + database, locally
+cd C:/Ai/oceancool
+API_PORT=18080 docker compose up --build
+
+# 2. a public HTTPS URL for the API  -> prints https://<random>.trycloudflare.com
+cloudflared tunnel --url http://localhost:18080
+
+# 3. build the frontend against that URL, and serve it
+cd frontend
+VITE_API_BASE_URL=https://<random>.trycloudflare.com npm run build
+npm run preview -- --port 4173
+
+# 4. a second tunnel, for the frontend
+cloudflared tunnel --url http://localhost:4173
+```
+
+Open the second tunnel's URL on the phone and install it from there.
+
+Two things to remember:
+
+- The API's `CORS_ORIGINS` has to include the frontend's tunnel URL. Set it in
+  `docker-compose.yml` (or as an env var) and restart the API container, or every
+  request is blocked — the same trap as section 10, step 3.
+- These URLs are ephemeral: they change every time `cloudflared` restarts, and the
+  tunnel dies with the terminal. Fine for an afternoon of testing on a phone, not a
+  way to run the shop.
+
