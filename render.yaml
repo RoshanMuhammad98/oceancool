@@ -1,0 +1,59 @@
+# Render Blueprint for the OceanCool API.
+#
+# In Render: New -> Blueprint -> point it at this repository. Render reads this file and
+# creates the service; the values marked `sync: false` are NOT in git and Render will
+# prompt for each one on the first deploy.
+#
+# The database is deliberately NOT declared here. Render's free Postgres expires after
+# 30 days and is then deleted, so the database lives on Neon instead (free, permanent,
+# no card) and its connection details arrive through the variables below.
+#
+# The frontend is not here either — it goes to Vercel, which handles SPA routing and a
+# global CDN better than a container does. See README section 10.
+
+services:
+  - type: web
+    name: oceancool-api
+    runtime: docker
+    plan: free
+    region: singapore # closest Render region to Kerala
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+
+    # Proves the app is up *and* that it can reach the database, which is what actually
+    # goes wrong on a first deploy. Every endpoint is currently open, so no token needed.
+    healthCheckPath: /api/dashboard
+
+    envVars:
+      # ---- Neon connection (from the Neon dashboard) ----
+      # Must be the JDBC form and must keep sslmode=require:
+      #   jdbc:postgresql://<host>.neon.tech/neondb?sslmode=require
+      - key: DB_URL
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+
+      # ---- the staff login created on first boot ----
+      - key: ADMIN_USERNAME
+        value: admin
+      - key: ADMIN_PASSWORD
+        sync: false
+
+      # ---- who may call this API ----
+      # Set to the Vercel URL once the frontend is deployed, e.g.
+      #   https://oceancool.vercel.app
+      - key: CORS_ORIGINS
+        sync: false
+
+      # Demo customers and services on an empty database — useful while testing,
+      # set to false before the shop starts entering real records.
+      - key: SEED_DEMO
+        value: "true"
+
+      # Neon's free compute suspends when idle, so the first connection after a quiet
+      # spell takes a few seconds to wake it. Default Hikari timeout is 30s, which
+      # covers it; the small pool respects the free tier's connection limit.
+      - key: DB_POOL_SIZE
+        value: "5"

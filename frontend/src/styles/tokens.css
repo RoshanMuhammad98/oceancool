@@ -1,0 +1,186 @@
+/*
+ * OceanCool design tokens.
+ *
+ * Palette: an ocean teal for the brand and every interactive surface, copper for money
+ * still owed, green for money received. Neutrals are greys biased slightly toward the
+ * teal so they read as chosen rather than inherited.
+ *
+ * Themes: the full light palette lives on bare :root. The dark values are declared
+ * twice on purpose — once behind prefers-color-scheme for viewers on the default
+ * "system" setting, and once behind [data-theme="dark"] so the in-app toggle wins in
+ * either direction. Components only ever read tokens, never a literal colour.
+ */
+
+:root {
+  color-scheme: light;
+
+  /* surfaces */
+  --ground: #e4eaea;
+  --surface: #f8fafa;
+  --surface-2: #edf2f2;
+  --surface-3: #e2eaea;
+  --line: #d5dede;
+  --line-strong: #b3c2c2;
+
+  /* text */
+  --ink: #0c191d;
+  --ink-2: #40555a;
+  --ink-3: #6a7f84;
+
+  /* brand */
+  --cool: #0e7c8a;
+  --cool-ink: #08606b;
+  --cool-soft: #daeef0;
+  --on-cool: #ffffff;
+  /* filled controls carry their own pair: a bright accent that reads well as small
+     text on a dark ground becomes a glowing slab at button size, so buttons get a
+     deeper fill and light text in both themes */
+  --cool-solid: #0e7c8a;
+  --on-cool-solid: #ffffff;
+
+  /* money owed */
+  --copper: #a85229;
+  --copper-ink: #8a4321;
+  --copper-soft: #f8e5d9;
+  --on-copper: #ffffff;
+  --copper-solid: #a85229;
+  --on-copper-solid: #ffffff;
+
+  /* money received */
+  --good: #2a7a48;
+  --good-ink: #1f6038;
+  --good-soft: #dbede2;
+
+  /* part paid */
+  --warn: #8a6008;
+  --warn-ink: #6f4d06;
+  --warn-soft: #f5e9cf;
+
+  /* elevation */
+  --shadow-sm: 0 1px 2px rgba(12, 25, 29, 0.05);
+  --shadow: 0 1px 2px rgba(12, 25, 29, 0.05), 0 10px 26px -18px rgba(12, 25, 29, 0.3);
+  --shadow-lg: 0 24px 60px -24px rgba(12, 25, 29, 0.38);
+  --shadow-sheet: 0 -10px 44px -14px rgba(12, 25, 29, 0.36);
+  --shadow-cool: 0 8px 22px -8px rgba(14, 124, 138, 0.5);
+  --skeleton: linear-gradient(90deg, var(--surface-2) 25%, var(--surface-3) 50%, var(--surface-2) 75%);
+
+  /* type */
+  --font-display: Archivo, 'Segoe UI', system-ui, sans-serif;
+  --font-body: 'IBM Plex Sans', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --step--2: 0.6875rem; /* 11px — eyebrows, meta */
+  --step--1: 0.8125rem; /* 13px — secondary text */
+  --step-0: 0.9375rem; /* 15px — body */
+  --step-1: 1.0625rem; /* 17px — card titles */
+  --step-2: 1.3125rem; /* 21px — screen titles */
+  --step-3: 1.75rem; /* 28px — figures */
+  --step-4: 2.25rem; /* 36px — the one hero figure */
+
+  /* shape + rhythm */
+  --r-sm: 8px;
+  --r: 12px;
+  --r-lg: 16px;
+  --r-pill: 999px;
+  --gap-1: 6px;
+  --gap-2: 10px;
+  --gap-3: 14px;
+  --gap-4: 20px;
+  --gap-5: 28px;
+
+  /* layout */
+  --col: 480px; /* the phone column */
+  --col-wide: 920px; /* desktop content width beside the rail */
+  --rail: 232px;
+  --nav-h: 66px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+
+    --ground: #050c0f;
+    --surface: #101a1e;
+    --surface-2: #17252a;
+    --surface-3: #1e2f36;
+    --line: #233339;
+    --line-strong: #364a52;
+
+    --ink: #e7f0f0;
+    --ink-2: #a2b8bc;
+    --ink-3: #789095;
+
+    --cool: #4ac5d3;
+    --cool-ink: #8fe2ec;
+    --cool-soft: #103138;
+    --on-cool: #04181c;
+    --cool-solid: #11707f;
+    --on-cool-solid: #eafbfd;
+
+    --copper: #e58f65;
+    --copper-ink: #f3b18f;
+    --copper-soft: #38200f;
+    --on-copper: #201006;
+    --copper-solid: #9c4f2a;
+    --on-copper-solid: #fff1e8;
+
+    --good: #68c68c;
+    --good-ink: #93d9ae;
+    --good-soft: #112f1f;
+
+    --warn: #dcb359;
+    --warn-ink: #ebcb8b;
+    --warn-soft: #322608;
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.45), 0 10px 26px -18px rgba(0, 0, 0, 0.9);
+    --shadow-lg: 0 24px 60px -24px rgba(0, 0, 0, 0.85);
+    --shadow-sheet: 0 -10px 44px -14px rgba(0, 0, 0, 0.8);
+    --shadow-cool: 0 8px 22px -8px rgba(0, 0, 0, 0.7);
+    --skeleton: linear-gradient(90deg, var(--surface-2) 25%, var(--surface-3) 50%, var(--surface-2) 75%);
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --ground: #050c0f;
+  --surface: #101a1e;
+  --surface-2: #17252a;
+  --surface-3: #1e2f36;
+  --line: #233339;
+  --line-strong: #364a52;
+
+  --ink: #e7f0f0;
+  --ink-2: #a2b8bc;
+  --ink-3: #789095;
+
+  --cool: #4ac5d3;
+  --cool-ink: #8fe2ec;
+  --cool-soft: #103138;
+  --on-cool: #04181c;
+  --cool-solid: #11707f;
+  --on-cool-solid: #eafbfd;
+
+  --copper: #e58f65;
+  --copper-ink: #f3b18f;
+  --copper-soft: #38200f;
+  --on-copper: #201006;
+  --copper-solid: #9c4f2a;
+  --on-copper-solid: #fff1e8;
+
+  --good: #68c68c;
+  --good-ink: #93d9ae;
+  --good-soft: #112f1f;
+
+  --warn: #dcb359;
+  --warn-ink: #ebcb8b;
+  --warn-soft: #322608;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.45), 0 10px 26px -18px rgba(0, 0, 0, 0.9);
+  --shadow-lg: 0 24px 60px -24px rgba(0, 0, 0, 0.85);
+  --shadow-sheet: 0 -10px 44px -14px rgba(0, 0, 0, 0.8);
+  --shadow-cool: 0 8px 22px -8px rgba(0, 0, 0, 0.7);
+  --skeleton: linear-gradient(90deg, var(--surface-2) 25%, var(--surface-3) 50%, var(--surface-2) 75%);
+}

@@ -1,0 +1,373 @@
+/* Reset, typography, and the responsive shell: bottom tabs on a phone, a side rail
+   from tablet width up. Same markup, no duplicated components. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--step-0);
+  line-height: 1.45;
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+a {
+  color: var(--cool-ink);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+  margin: 0;
+}
+
+:focus-visible {
+  outline: 2px solid var(--cool);
+  outline-offset: 2px;
+  border-radius: var(--r-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ---------- utilities ---------- */
+
+.mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.eyebrow {
+  font-size: var(--step--2);
+  font-weight: 600;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.muted {
+  color: var(--ink-3);
+}
+
+.truncate {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-3);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-2);
+}
+
+.grow {
+  flex: 1;
+  min-width: 0;
+}
+
+.scroll-x {
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.scroll-x::-webkit-scrollbar {
+  display: none;
+}
+
+/* ---------- shell ---------- */
+
+.shell {
+  min-height: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.frame {
+  width: 100%;
+  max-width: var(--col);
+  /* a flex item will not shrink below its min-content width without this, which lets
+     one wide row push the whole column past the viewport */
+  min-width: 0;
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: var(--gap-2);
+  padding: 12px 15px 11px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+
+.topbar .titles {
+  flex: 1;
+  min-width: 0;
+}
+
+.topbar h1 {
+  font-size: var(--step-1);
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.topbar .titles .eyebrow {
+  display: block;
+  margin-bottom: 1px;
+}
+
+.brandmark {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  border-radius: 9px;
+  background: linear-gradient(180deg, #12909f, #075663);
+  display: grid;
+  place-items: center;
+  box-shadow: var(--shadow-sm);
+}
+
+.brandmark svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+.page {
+  flex: 1;
+  /* clears the bottom tabs and the floating add button above them */
+  padding: var(--gap-3) var(--gap-3) calc(var(--nav-h) + 78px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-3);
+  min-width: 0;
+}
+
+/* ---------- bottom tabs (phone) ---------- */
+
+.tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid var(--line);
+}
+
+.tabbar .inner {
+  max-width: var(--col);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
+}
+
+.tab {
+  position: relative;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  padding: 7px 2px 6px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  color: var(--ink-3);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  transition: color 0.14s ease;
+}
+
+.tab svg {
+  width: 21px;
+  height: 21px;
+}
+
+.tab.active {
+  color: var(--cool);
+}
+
+/* ---------- side rail (tablet and up) ---------- */
+
+.rail {
+  display: none;
+}
+
+@media (min-width: 800px) {
+  .shell {
+    gap: 0;
+  }
+
+  .rail {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-4);
+    width: var(--rail);
+    flex: 0 0 var(--rail);
+    padding: 20px 16px;
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+    height: 100vh;
+    background: var(--surface);
+    border-right: 1px solid var(--line);
+  }
+
+  .rail .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .rail .brand .name {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: var(--step-1);
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+
+  .rail .brand .name span {
+    display: block;
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: var(--step--2);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .rail nav {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .rail .tab {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 11px;
+    padding: 10px 11px;
+    font-size: var(--step-0);
+    font-weight: 500;
+    letter-spacing: 0;
+  }
+
+  .rail .tab.active {
+    background: var(--cool-soft);
+    color: var(--cool-ink);
+    font-weight: 600;
+  }
+
+  .rail .footer {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-2);
+  }
+
+  .frame {
+    max-width: var(--col-wide);
+    border-inline: 1px solid var(--line);
+  }
+
+  .page {
+    padding: var(--gap-4);
+    gap: var(--gap-4);
+  }
+
+  .topbar {
+    padding: 18px 20px 16px;
+  }
+
+  .topbar h1 {
+    font-size: var(--step-2);
+  }
+
+  .topbar .brandmark {
+    display: none;
+  }
+
+  .tabbar {
+    display: none;
+  }
+}
+
+@media (min-width: 1240px) {
+  .frame {
+    box-shadow: var(--shadow);
+  }
+}

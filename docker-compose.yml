@@ -1,0 +1,54 @@
+# Local test environment: Postgres + the API, one command, no password hunting and no
+# cloud account. Useful when the machine's own PostgreSQL credentials are not to hand.
+#
+#   docker compose up --build        # http://localhost:8080
+#   docker compose down             # stop, keep the data
+#   docker compose down -v          # stop and wipe the data
+#
+# Then run the frontend as usual — `npm run dev` proxies /api here.
+#
+# These credentials are for a throwaway local container. Real deployments get theirs
+# from the host's environment variables; see render.yaml and README section 10.
+
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: oceancool-db
+    environment:
+      POSTGRES_DB: oceancool
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: localdev
+    volumes:
+      - oceancool-db:/var/lib/postgresql/data
+    # the API waits on this rather than racing the database to be ready
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d oceancool']
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build: ./backend
+    container_name: oceancool-api
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PORT: 8080
+      DB_URL: jdbc:postgresql://db:5432/oceancool
+      DB_USERNAME: postgres
+      DB_PASSWORD: localdev
+      ADMIN_USERNAME: admin
+      ADMIN_PASSWORD: admin123
+      SEED_DEMO: 'true'
+      # port wildcard so dev (5173) and preview (4173) both work, on either
+      # spelling of loopback
+      CORS_ORIGINS: 'http://localhost:[*],http://127.0.0.1:[*]'
+    ports:
+      # Another Spring Boot app on 8080 is common; override without editing this file:
+      #   API_PORT=8081 docker compose up --build
+      # If you change it, point the frontend at it too with VITE_DEV_API_TARGET.
+      - '${API_PORT:-8080}:8080'
+
+volumes:
+  oceancool-db:
