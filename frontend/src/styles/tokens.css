@@ -88,6 +88,12 @@
   --gap-4: 20px;
   --gap-5: 28px;
 
+  /* The phone's own furniture. viewport-fit=cover lets the page draw under the status
+     bar at the top and the gesture bar at the bottom, so anything sitting at a screen
+     edge has to add these back. Both are 0px on a desktop. */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+
   /* layout */
   --col: 480px; /* the phone column */
   --col-wide: 920px; /* desktop content width beside the rail */
